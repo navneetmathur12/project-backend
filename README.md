@@ -29,3 +29,10 @@ It includes user authentication, post creation, likes, comments, and profile pic
 ---
 
 ## 📂 Folder Structure
+project-backend/
+│── models/
+│── config/
+│── public/
+│── views/
+│── app.js
+│── package.json
