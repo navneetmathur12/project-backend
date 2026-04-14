@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="/stylesheet/style.css" />
+  </head>
+  <body>
+    <div class="auth-container">
+      <form action="/register" method="post" class="auth-form">
+        <h1>Create Account</h1>
+        <input placeholder="Name" type="text" name="name" required />
+        <input
+          placeholder="Username"
+          type="username"
+          name="username"
+          required
+        />
+        <input placeholder="Age" type="number" name="age" required />
+        <input placeholder="Email" type="email" name="email" required />
+        <input
+          placeholder="Password"
+          type="password"
+          name="password"
+          required
+        />
+
+        <input type="submit" value="Create Account" />
+
+        <a href="/login">
+          <button type="button" class="logout-btn">Go to Login</button>
+        </a>
+      </form>
+    </div>
+  </body>
+</html>

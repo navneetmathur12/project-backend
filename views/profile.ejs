@@ -1,0 +1,157 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile</title>
+  <link rel="stylesheet" href="/stylesheet/style.css" />
+</head>
+<body>
+
+<div class="container">
+
+
+  <div class="profile-card">
+    <img src="/image/upload/<%= user.profilepic || 'default.png' %>" alt="Profile Pic" />
+    <h2>@<%= user.username %></h2>
+    <p><%= user.name %></p>
+
+    <a href="/logout"><button class="btn logout-btn">Logout</button></a>
+
+  
+    <h3>Profile Picture</h3>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="image" required />
+      <input type="submit" value="Upload" class="upload-btn" />
+    </form>
+
+    <form action="/delete-profile-pic" method="post" style="margin-top:10px;">
+      <button type="submit" class="delete-btn">Delete Profile Picture</button>
+    </form>
+  </div>
+
+  
+  <div class="post-section">
+
+   
+    <div class="post-box">
+      <form action="/post" method="post">
+        <textarea name="content" placeholder="What's on your mind?" required></textarea>
+        <button type="submit" class="btn post-btn">Post</button>
+      </form>
+    </div>
+
+    <h3>Your Posts</h3>
+
+  
+    <% user.posts.slice().reverse().forEach(function(post){ %>
+      <div class="post" data-postid="<%= post._id %>">
+        <h4>@<%= user.username %></h4>
+
+        <p class="post-content"><%= post.content %></p>
+
+        <small class="like_count"><%= post.likes.length %> Likes</small>
+
+        <div class="actions">
+          <button onclick="likepost('<%=post._id%>', this)">
+            <%= post.likes.some(id => id.toString() === user._id.toString()) ? "Unlike" : "Like"%>
+          </button>
+          <button onclick="editPost(this)">Edit</button>
+        </div>
+
+
+
+        <!-- COMMENTS (future enhancement) -->
+        <div class="comments">
+          <div class="comment-list">
+            <% if(post.comments) { post.comments.forEach(c => { %>
+              <p><b><%= c.user.username %>:</b> <%= c.text %></p>
+            <% }) } %>
+          </div>
+          <div class="comment-box">
+            <input type="text" id="comment-input-<%= post._id %>" placeholder="Add a comment..." />
+            <button onclick="addComment('<%= post._id %>', this)">Comment</button>
+        </div>
+        </div>
+        
+      </div>
+    <% }) %>
+
+  </div>
+
+</div>
+
+<script>
+  function likepost(postId, el) {
+    fetch(`/like/${postId}`, { method: "POST" })
+      .then(res => res.json())
+      .then(data => {
+        el.innerText = data.liked ? "Unlike" : "Like";
+        let count = el.closest(".post").querySelector(".like_count");
+        count.innerText = data.likes + " Likes";
+      });
+  }
+
+  function editPost(btn) {
+    const postDiv = btn.closest(".post");
+    const contentP = postDiv.querySelector(".post-content");
+    const currentText = contentP.innerText;
+
+    const textarea = document.createElement("textarea");
+    textarea.value = currentText;
+    postDiv.insertBefore(textarea, contentP);
+    contentP.style.display = "none";
+
+    btn.innerText = "Save";
+    btn.onclick = () => {
+      const newContent = textarea.value.trim();
+      if(!newContent) return alert("Post cannot be empty");
+
+      fetch(`/update/${postDiv.dataset.postid}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent })
+      })
+      .then(res => {
+        if(res.ok) {
+          contentP.innerText = newContent;
+          contentP.style.display = "block";
+          textarea.remove();
+          btn.innerText = "Edit";
+          btn.onclick = () => editPost(btn);
+        }
+      });
+    };
+  }
+
+ function addComment(postId, btn) {
+  const input = btn.previousElementSibling;
+  const text = input.value.trim();
+  if(!text) return;
+
+  fetch(`/comment/${postId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success) {
+      const commentList = btn.closest(".post").querySelector(".comment-list");
+      const p = document.createElement("p");
+      p.innerHTML = `<b>@${data.comment.user.username}:</b> ${data.comment.text}`;
+      commentList.appendChild(p);
+      input.value = ""; // clear input
+    } else {
+      alert("Failed to add comment");
+    }
+  })
+  .catch(err => console.error(err));
+}
+</script>
+
+</body>
+</html>
